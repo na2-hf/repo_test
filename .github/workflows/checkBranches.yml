@@ -1,0 +1,26 @@
+name: Check pull request source branch
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+jobs:
+  check-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branches
+        run: |
+          if [[ ${{ github.base_ref }} == "main" ]]; then
+            if [[ !( ${{ github.head_ref }} =~ ^(feature_.*)$ ) && !( ${{ github.head_ref }} =~ ^(fix_.*)$ ) ]]; then
+              echo "Merge requests to main branch are only allowed from feature_* and fix_* branches."
+              exit 1
+            fi
+          fi
+          if [[ ${{ github.base_ref }} =~ ^rc_[0-9]+(\.[0-9]+)*\.patches$ ]]; then
+            if [[ ! ${{ github.head_ref }} =~ ^(fix_.*)$ && ! ${{ github.head_ref }} =~ ^(main)$ ]]; then
+              echo "Merge requests to rc_X.Y.patches branch are only allowed from fix_* and main branches."
+              exit 1
+            fi
+          fi
